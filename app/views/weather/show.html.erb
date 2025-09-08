@@ -30,13 +30,7 @@
           <div class="col">
             <h2 class="card-title mb-1">
               <i class="fas fa-map-marker-alt me-2"></i>
-              <% if @search_type == "zip" %>
-                <!-- For ZIP codes, show just city and state -->
-                <%= @weather_data[:location][:name] %>, <%= @weather_data[:location][:country] %>
-              <% else %>
-                <!-- For addresses and coordinates, show the original query -->
-                <%= @original_query %>
-              <% end %>
+              <%= @weather_data[:location][:name] %>, <%= @weather_data[:location][:region] || @weather_data[:location][:country] %>
             </h2>
             <p class="mb-0 opacity-75">
               <i class="fas fa-clock me-1"></i>
@@ -169,7 +163,7 @@
     <div class="card mt-4 border-0 bg-light">
       <div class="card-body text-center">
         <h5 class="card-title">Search Another Location</h5>
-        <p class="card-text text-muted">Get weather information for a different address or zip code</p>
+        <p class="card-text text-muted">Get weather information for a different address</p>
         <%= link_to root_path, class: "btn btn-primary" do %>
           <i class="fas fa-search me-2"></i>Search Again
         <% end %>

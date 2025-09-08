@@ -2,52 +2,45 @@
 
 # WeatherController handles all weather-related web requests
 # This controller provides endpoints for displaying weather information
-# and handles both address-based and zip code-based weather lookups
+# and handles coordinate-based weather lookups with ZIP code caching
 #
 # @example GET /weather
 #   # Displays the weather search form
 #
-# @example GET /weather/show?address=New York, NY
-#   # Shows weather for the specified address
-#
-# @example GET /weather/show?zip=10001
-#   # Shows weather for the specified zip code (with caching)
+# @example GET /weather/show?lat=37.3313191&lng=-122.0103521&zip_code=94087&search_query=1%2C+Apple+Park+Way%2C+Cupertino%2C+California%2C+94087
+#   # Shows weather for the specified coordinates, cached by ZIP code (94087)
 #
 class WeatherController < ApplicationController
-  before_action :set_weather_service, only: [ :show ]
-  before_action :validate_search_params, only: [ :show ]
-
   # Display the weather search form
-  # This is the main landing page where users can enter an address or zip code
+  # This is the main landing page where users can enter an address
   def index
     # Initialize empty search form
     @search_query = params[:search_query] || ""
-    @search_type = params[:search_type] || "address"
   end
 
 
   # Display weather information for the specified location
-  # Automatically detects if input is zip code or address and handles appropriately
   def show
+    validate_search_params
+    set_weather_service
+
     begin
-      # Determine search type and store for view
+      # All searches now require lat/lng coordinates
       if params[:lat].present? && params[:lng].present?
-        @search_type = "coordinates"
-        @original_query = @search_query # Keep the original address from typeahead
-        @weather_data = @weather_service.get_weather_by_coordinates(
+        # Get ZIP code from parameter (extracted by frontend)
+        zip_code = params[:zip_code]
+
+        # Use coordinates for weather lookup but ZIP for caching
+        @weather_data = @weather_service.get_weather_by_coordinates_with_zip_cache(
           params[:lat].to_f,
-          params[:lng].to_f
+          params[:lng].to_f,
+          zip_code
         )
-      # Check if input is a zip code (5 digits)
-      elsif valid_zip_code?(@search_query)
-        @search_type = "zip"
-        @original_query = @search_query
-        @weather_data = @weather_service.get_weather_by_zip(@search_query)
-      # Otherwise treat as address
       else
-        @search_type = "address"
-        @original_query = @search_query
-        @weather_data = @weather_service.get_weather_by_address(@search_query)
+        # Handle invalid input - require coordinates
+        flash.now[:alert] = "Please select an address from the suggestions to get weather information."
+        render :index, status: :unprocessable_entity
+        return
       end
 
       # Handle errors from the weather service
@@ -58,8 +51,6 @@ class WeatherController < ApplicationController
       end
 
       # Set additional view variables
-      @search_query = @search_query
-      @search_type = @search_type
       @cached = @weather_data[:cached] || false
       @cache_timestamp = @weather_data[:cache_timestamp]
 
@@ -86,21 +77,11 @@ class WeatherController < ApplicationController
   # Ensures that required search parameters are present and valid
   def validate_search_params
     @search_query = params[:search_query]&.strip
-    @search_type = params[:search_type] || "address"
 
-    # Validate search query
-    if @search_query.blank?
-      flash.now[:alert] = "Please enter an address or zip code to search for weather information."
+    # Require search query, coordinates, and ZIP code
+    if @search_query.blank? || params[:lat].blank? || params[:lng].blank? || params[:zip_code].blank?
+      flash.now[:alert] = "Please select an address from the suggestions to get weather information."
       render :index, status: :unprocessable_entity
-      nil
     end
-  end
-
-  # Validate zip code format
-  # @param zip_code [String] The zip code to validate
-  # @return [Boolean] True if the zip code is valid
-  def valid_zip_code?(zip_code)
-    # US zip code format: 5 digits
-    zip_code.match?(/\A\d{5}\z/)
   end
 end

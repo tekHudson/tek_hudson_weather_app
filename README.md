@@ -1,12 +1,12 @@
 # Weather App
 
-A Ruby on Rails application that provides current weather information for any address or zip code.
+A Ruby on Rails application that provides current weather information for any address using coordinate-based lookups with ZIP code caching.
 
 ## Features
 
 - 🌤️ **Current Weather Data** - Get real-time temperature, humidity, pressure, and wind information
-- 📍 **Address & Zip Code Search** - Search by full address or 5-digit US zip code
-- ⚡ **Smart Caching** - Results are cached for 30 minutes to improve performance
+- 📍 **Address Search with Autocomplete** - Search by full address with intelligent suggestions
+- ⚡ **Smart ZIP Code Caching** - Results are cached by ZIP code for 30 minutes to improve performance
 - 🎨 **Beautiful UI** - Responsive design with Bootstrap 5 and Font Awesome icons
 - 🔄 **Cache Indicators** - Visual indicators show when data is retrieved from cache
 - 🧪 **Comprehensive Tests** - Full RSpec test suite with WebMock for API testing

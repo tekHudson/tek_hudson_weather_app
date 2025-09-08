@@ -19,7 +19,8 @@ class AddressesController < ApplicationController
           format: "json",
           limit: 100, # Get more results to allow for better sorting
           countrycodes: "us", # Limit to US addresses
-          addressdetails: 1
+          addressdetails: 1,
+          layer: "address"
         },
         headers: {
           "User-Agent" => "WeatherApp/1.0"
@@ -28,24 +29,23 @@ class AddressesController < ApplicationController
 
       if response.success?
         addresses = response.parsed_response.map do |result|
+          puts result
           address_data = result["address"]
           {
             display_name: result["display_name"],
             lat: result["lat"],
-            lon: result["lon"],
+            lng: result["lon"],
+            zip_code: address_data["postcode"],
             formatted_address: format_address(address_data),
-            address_data: address_data,
             priority_score: calculate_priority_score(address_data, query)
           }
         end
 
-        # Sort by priority score (higher is better) and take top 5
-        sorted_addresses = addresses.sort_by { |addr| -addr[:priority_score] }.first(5)
-
+        # Sort by priority score (higher is better) and take highest 10
         # Remove the priority_score from the final response
-        final_addresses = sorted_addresses.map { |addr| addr.except(:address_data, :priority_score) }
-
-        render json: final_addresses
+        render json: addresses.sort_by { |addr| addr[:priority_score] }
+                              .reverse.first(10)
+                              .map { |addr| addr.except(:priority_score) }
       else
         render json: []
       end

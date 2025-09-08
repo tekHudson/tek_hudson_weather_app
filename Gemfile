@@ -56,12 +56,17 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
+  # Ruby Language Server Protocol for IDE support
+  gem "ruby-lsp", "~> 0.26"
+  gem "ruby-lsp-rails", "~> 0.4"
+
   # Testing framework
   gem "rspec-rails", "~> 7.0"
   gem "factory_bot_rails", "~> 6.4"
   gem "faker", "~> 3.0"
   gem "webmock", "~> 3.19"  # For stubbing HTTP requests in tests
   gem "vcr", "~> 6.2"       # For recording HTTP interactions in tests
+  gem "rails-controller-testing"  # For controller testing helpers
 end
 
 group :development do

@@ -33,37 +33,6 @@ class WeatherService
     end
   end
 
-  # Get weather data for a given address
-  # This method uses WeatherAPI.com's built-in geocoding
-  # @param address [String] The address to get weather for
-  # @return [Hash] Weather data including current temperature, high/low, and extended forecast
-  def get_weather_by_address(address)
-    return { error: "Address cannot be blank" } if address.blank?
-
-    # Use address as cache key
-    cache_key = "weather_address_#{address.downcase.gsub(/\s+/, '_')}"
-
-    # Try to get from cache first
-    cached_data = Rails.cache.read(cache_key)
-    if cached_data
-      cached_data[:cached] = true
-      cached_data[:cache_timestamp] = Rails.cache.read("#{cache_key}_timestamp")
-      return cached_data
-    end
-
-    # If not in cache, fetch from API
-    weather_data = fetch_weather_data(address: address)
-
-    # Cache the result for 30 minutes
-    if weather_data[:error].nil?
-      Rails.cache.write(cache_key, weather_data, expires_in: CACHE_DURATION)
-      Rails.cache.write("#{cache_key}_timestamp", Time.current, expires_in: CACHE_DURATION)
-      weather_data[:cached] = false
-    end
-
-    weather_data
-  end
-
   # Get weather data for a given zip code
   # This method uses caching to avoid repeated API calls for the same zip code
   # @param zip_code [String] The zip code to get weather for
@@ -124,40 +93,54 @@ class WeatherService
     weather_data
   end
 
+  # Get weather data using coordinates but cache by ZIP code
+  # This provides more efficient caching by grouping nearby locations
+  # @param lat [Float] Latitude
+  # @param lng [Float] Longitude
+  # @param zip_code [String, nil] ZIP code for caching (optional)
+  # @return [Hash] Weather data
+  def get_weather_by_coordinates_with_zip_cache(lat, lng, zip_code = nil)
+    # Use ZIP code for caching if available, otherwise fall back to coordinates
+    cache_key = if zip_code.present?
+                   "weather_zip_#{zip_code}"
+    else
+                   "weather_coords_#{lat.round(4)}_#{lng.round(4)}"
+    end
+
+    # Try to get from cache first
+    cached_data = Rails.cache.read(cache_key)
+    if cached_data
+      cached_data[:cached] = true
+      cached_data[:cache_timestamp] = Rails.cache.read("#{cache_key}_timestamp")
+      return cached_data
+    end
+
+    # If not in cache, fetch from API using coordinates
+    weather_data = fetch_weather_data(lat: lat, lng: lng)
+
+    # Cache the result for 30 minutes
+    if weather_data[:error].nil?
+      Rails.cache.write(cache_key, weather_data, expires_in: CACHE_DURATION)
+      Rails.cache.write("#{cache_key}_timestamp", Time.current, expires_in: CACHE_DURATION)
+      weather_data[:cached] = false
+    end
+
+    weather_data
+  end
+
   private
 
   # Fetch weather data for zip code with multiple format attempts
   # @param zip_code [String] The zip code to get weather for
   # @return [Hash] Weather data or error information
   def fetch_weather_data_for_zip(zip_code)
-    # Try different zip code formats to ensure we get the correct US location
-    zip_formats = [
-      zip_code,                    # Just the zip code
-      "#{zip_code}, USA",         # Zip code with USA
-      "#{zip_code}, US",          # Zip code with US
-      "#{zip_code}, United States" # Zip code with full country name
-    ]
+    weather_data = fetch_weather_data(zip_code: zip_code)
 
-    zip_formats.each_with_index do |format, index|
-      Rails.logger.info "Trying zip format #{index + 1}: #{format}"
-
-      weather_data = fetch_weather_data(zip_code: format)
-
-      # If we got a successful response, check if it's actually in the US
-      if weather_data[:error].nil? && weather_data[:location]
-        country = weather_data[:location][:country]
-        Rails.logger.info "Got response for country: #{country}"
-
-        # If it's the US, return the data immediately
-        if country&.include?("USA") || country&.include?("United States")
-          Rails.logger.info "Successfully found US location for zip #{zip_code} using format: #{format}"
-          return weather_data
-        else
-          Rails.logger.warn "Zip #{zip_code} returned location in #{country}, trying next format"
-        end
-      else
-        Rails.logger.warn "Zip format #{format} returned error: #{weather_data[:error]}"
-      end
+    # If we got a successful response, check if it's actually in the US
+    if weather_data[:error].nil? && weather_data[:location]
+      return weather_data
+    else
+      Rails.logger.warn "Zip format #{format} returned error: #{weather_data[:error]}"
     end
 
     # If none of the formats worked, return the last error
@@ -170,7 +153,6 @@ class WeatherService
   # @option options [String] :zip_code Zip code for weather lookup
   # @option options [Float] :lat Latitude for weather lookup
   # @option options [Float] :lng Longitude for weather lookup
-  # @option options [String] :address Address for weather lookup
   # @return [Hash] Weather data or error information
   def fetch_weather_data(options = {})
     begin
@@ -185,8 +167,6 @@ class WeatherService
                    zip_code
       elsif options[:lat] && options[:lng]
                    "#{options[:lat]},#{options[:lng]}"
-      elsif options[:address]
-                   options[:address]
       else
                    return { error: "Invalid parameters for weather lookup" }
       end
@@ -241,6 +221,7 @@ class WeatherService
     {
       location: {
         name: api_response["location"]["name"],
+        region: api_response["location"]["region"],
         country: api_response["location"]["country"],
         coordinates: {
           lat: api_response["location"]["lat"],

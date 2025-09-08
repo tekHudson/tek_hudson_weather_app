@@ -8,7 +8,7 @@
         <i class="fas fa-cloud-sun me-3"></i>Weather App
       </h1>
       <p class="lead text-muted">
-        Get current weather information for any address or zip code
+        Get current weather information for any address
       </p>
     </div>
 
@@ -21,14 +21,15 @@
       </div>
       <div class="card-body p-4">
         <%= form_with url: weather_show_path, method: :get, local: true, class: "needs-validation", novalidate: true, id: "weather-form" do |form| %>
-          <!-- Hidden fields for coordinates -->
+          <!-- Hidden fields for coordinates and ZIP code -->
           <%= form.hidden_field :lat, id: "hidden_lat" %>
           <%= form.hidden_field :lng, id: "hidden_lng" %>
+          <%= form.hidden_field :zip_code, id: "hidden_zip_code" %>
           
           <!-- Search Input -->
           <div class="mb-4">
             <label for="search_query" class="form-label fw-semibold">
-              <i class="fas fa-search me-2"></i>Enter Address or Zip Code
+              <i class="fas fa-search me-2"></i>Enter Address
             </label>
             <div class="input-group">
               <span class="input-group-text">
@@ -37,11 +38,11 @@
               <%= form.text_field :search_query, 
                   id: "search_query",
                   class: "form-control form-control-lg", 
-                  placeholder: "Enter address or zip code...",
+                  placeholder: "Enter address...",
                   value: @search_query,
                   autocomplete: "off",
                   required: true %>
-              <button class="btn btn-primary btn-lg" type="submit">
+              <button class="btn btn-secondary btn-lg" type="submit" disabled>
                 <i class="fas fa-search me-2"></i>Get Weather
               </button>
             </div>
@@ -51,7 +52,7 @@
             </div>
             <div class="form-text">
               <span id="search_help">
-                Enter a full address (e.g., "123 Main St, Boston, MA") or zip code (e.g., "02101")
+                Enter a full address (e.g., "123 Main St, Boston, MA") and select from the suggestions
               </span>
             </div>
           </div>
