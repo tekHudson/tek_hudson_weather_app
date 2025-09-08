@@ -44,7 +44,7 @@ gem "thruster", require: false
 gem "httparty", "~> 0.21"  # For making HTTP requests to weather APIs
 gem "geocoder", "~> 1.8"   # For address geocoding and reverse geocoding
 gem "redis", "~> 5.0"      # For advanced caching (optional, can use Rails cache)
-gem "dotenv-rails", "~> 2.8"  # For loading environment variables from .env file
+gem "dotenv-rails", "~> 3.1"  # For loading environment variables from .env file
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
