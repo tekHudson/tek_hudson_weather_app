@@ -95,6 +95,35 @@ class WeatherService
     weather_data
   end
 
+  # Get weather data using latitude and longitude coordinates
+  # @param lat [Float] Latitude
+  # @param lng [Float] Longitude
+  # @return [Hash] Weather data
+  def get_weather_by_coordinates(lat, lng)
+    # Use coordinates as cache key
+    cache_key = "weather_coords_#{lat.round(4)}_#{lng.round(4)}"
+
+    # Try to get from cache first
+    cached_data = Rails.cache.read(cache_key)
+    if cached_data
+      cached_data[:cached] = true
+      cached_data[:cache_timestamp] = Rails.cache.read("#{cache_key}_timestamp")
+      return cached_data
+    end
+
+    # If not in cache, fetch from API
+    weather_data = fetch_weather_data(lat: lat, lng: lng)
+
+    # Cache the result for 30 minutes
+    if weather_data[:error].nil?
+      Rails.cache.write(cache_key, weather_data, expires_in: CACHE_DURATION)
+      Rails.cache.write("#{cache_key}_timestamp", Time.current, expires_in: CACHE_DURATION)
+      weather_data[:cached] = false
+    end
+
+    weather_data
+  end
+
   private
 
   # Fetch weather data for zip code with multiple format attempts
@@ -135,34 +164,6 @@ class WeatherService
     { error: "Could not find weather data for zip code #{zip_code} in the United States" }
   end
 
-  # Get weather data using latitude and longitude coordinates
-  # @param lat [Float] Latitude
-  # @param lng [Float] Longitude
-  # @return [Hash] Weather data
-  def get_weather_by_coordinates(lat, lng)
-    # Use coordinates as cache key
-    cache_key = "weather_coords_#{lat.round(4)}_#{lng.round(4)}"
-
-    # Try to get from cache first
-    cached_data = Rails.cache.read(cache_key)
-    if cached_data
-      cached_data[:cached] = true
-      cached_data[:cache_timestamp] = Rails.cache.read("#{cache_key}_timestamp")
-      return cached_data
-    end
-
-    # If not in cache, fetch from API
-    weather_data = fetch_weather_data(lat: lat, lng: lng)
-
-    # Cache the result for 30 minutes
-    if weather_data[:error].nil?
-      Rails.cache.write(cache_key, weather_data, expires_in: CACHE_DURATION)
-      Rails.cache.write("#{cache_key}_timestamp", Time.current, expires_in: CACHE_DURATION)
-      weather_data[:cached] = false
-    end
-
-    weather_data
-  end
 
   # Fetch weather data from the WeatherAPI.com API
   # @param options [Hash] Options for the API call

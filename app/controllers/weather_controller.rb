@@ -25,14 +25,28 @@ class WeatherController < ApplicationController
     @search_type = params[:search_type] || "address"
   end
 
+
   # Display weather information for the specified location
-  # Handles both address and zip code searches with appropriate caching
+  # Automatically detects if input is zip code or address and handles appropriately
   def show
     begin
-      # Determine search type and get weather data
-      if @search_type == "zip"
+      # Determine search type and store for view
+      if params[:lat].present? && params[:lng].present?
+        @search_type = "coordinates"
+        @original_query = @search_query # Keep the original address from typeahead
+        @weather_data = @weather_service.get_weather_by_coordinates(
+          params[:lat].to_f,
+          params[:lng].to_f
+        )
+      # Check if input is a zip code (5 digits)
+      elsif valid_zip_code?(@search_query)
+        @search_type = "zip"
+        @original_query = @search_query
         @weather_data = @weather_service.get_weather_by_zip(@search_query)
+      # Otherwise treat as address
       else
+        @search_type = "address"
+        @original_query = @search_query
         @weather_data = @weather_service.get_weather_by_address(@search_query)
       end
 
@@ -77,13 +91,6 @@ class WeatherController < ApplicationController
     # Validate search query
     if @search_query.blank?
       flash.now[:alert] = "Please enter an address or zip code to search for weather information."
-      render :index, status: :unprocessable_entity
-      return
-    end
-
-    # Validate zip code format if searching by zip
-    if @search_type == "zip" && !valid_zip_code?(@search_query)
-      flash.now[:alert] = "Please enter a valid 5-digit zip code."
       render :index, status: :unprocessable_entity
       nil
     end

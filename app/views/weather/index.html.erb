@@ -20,29 +20,15 @@
         </h3>
       </div>
       <div class="card-body p-4">
-        <%= form_with url: weather_show_path, method: :get, local: true, class: "needs-validation", novalidate: true do |form| %>
-          <!-- Search Type Selection -->
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Search by:</label>
-            <div class="btn-group w-100" role="group" aria-label="Search type">
-              <input type="radio" class="btn-check" name="search_type" id="search_address" value="address" 
-                     <%= 'checked' if @search_type == 'address' || @search_type.blank? %>>
-              <label class="btn btn-outline-primary" for="search_address">
-                <i class="fas fa-map-marker-alt me-2"></i>Address
-              </label>
-
-              <input type="radio" class="btn-check" name="search_type" id="search_zip" value="zip" 
-                     <%= 'checked' if @search_type == 'zip' %>>
-              <label class="btn btn-outline-primary" for="search_zip">
-                <i class="fas fa-mail-bulk me-2"></i>Zip Code
-              </label>
-            </div>
-          </div>
-
+        <%= form_with url: weather_show_path, method: :get, local: true, class: "needs-validation", novalidate: true, id: "weather-form" do |form| %>
+          <!-- Hidden fields for coordinates -->
+          <%= form.hidden_field :lat, id: "hidden_lat" %>
+          <%= form.hidden_field :lng, id: "hidden_lng" %>
+          
           <!-- Search Input -->
           <div class="mb-4">
             <label for="search_query" class="form-label fw-semibold">
-              <span id="search_label">Enter Address</span>
+              <i class="fas fa-search me-2"></i>Enter Address or Zip Code
             </label>
             <div class="input-group">
               <span class="input-group-text">
@@ -53,14 +39,19 @@
                   class: "form-control form-control-lg", 
                   placeholder: "Enter address or zip code...",
                   value: @search_query,
+                  autocomplete: "off",
                   required: true %>
               <button class="btn btn-primary btn-lg" type="submit">
                 <i class="fas fa-search me-2"></i>Get Weather
               </button>
             </div>
+            <!-- Address Suggestions Dropdown -->
+            <div id="address-suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none; max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);">
+              <!-- Suggestions will be populated here -->
+            </div>
             <div class="form-text">
               <span id="search_help">
-                Enter a full address (e.g., "New York, NY" or "123 Main St, Boston, MA")
+                Enter a full address (e.g., "123 Main St, Boston, MA") or zip code (e.g., "02101")
               </span>
             </div>
           </div>
@@ -115,31 +106,5 @@
   </div>
 </div>
 
-<!-- JavaScript for dynamic form behavior -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const addressRadio = document.getElementById('search_address');
-  const zipRadio = document.getElementById('search_zip');
-  const searchLabel = document.getElementById('search_label');
-  const searchHelp = document.getElementById('search_help');
-  const searchInput = document.getElementById('search_query');
 
-  function updateFormLabels() {
-    if (zipRadio.checked) {
-      searchLabel.textContent = 'Enter Zip Code';
-      searchInput.placeholder = 'Enter 5-digit zip code (e.g., 10001)';
-      searchHelp.textContent = 'Enter a 5-digit US zip code (e.g., 10001, 90210)';
-    } else {
-      searchLabel.textContent = 'Enter Address';
-      searchInput.placeholder = 'Enter address or zip code...';
-      searchHelp.textContent = 'Enter a full address (e.g., "New York, NY" or "123 Main St, Boston, MA")';
-    }
-  }
 
-  addressRadio.addEventListener('change', updateFormLabels);
-  zipRadio.addEventListener('change', updateFormLabels);
-  
-  // Initialize form labels
-  updateFormLabels();
-});
-</script>
