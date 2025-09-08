@@ -17,8 +17,8 @@ class AddressesController < ApplicationController
         query: {
           q: query,
           format: "json",
-          limit: 100, # Get more results to allow for better sorting
-          countrycodes: "us", # Limit to US addresses
+          limit: 100,
+          countrycodes: "us",
           addressdetails: 1,
           layer: "address"
         },

@@ -21,8 +21,8 @@ class WeatherController < ApplicationController
 
   # Display weather information for the specified location
   def show
-    validate_search_params
-    set_weather_service
+    return unless validate_search_params
+    return unless set_weather_service
 
     begin
       # All searches now require lat/lng coordinates
@@ -71,6 +71,7 @@ class WeatherController < ApplicationController
     Rails.logger.error "Weather service initialization failed: #{e.message}"
     flash.now[:alert] = "Weather service is not properly configured. Please contact support."
     render :index, status: :service_unavailable
+    false
   end
 
   # Validate search parameters
@@ -82,6 +83,8 @@ class WeatherController < ApplicationController
     if @search_query.blank? || params[:lat].blank? || params[:lng].blank? || params[:zip_code].blank?
       flash.now[:alert] = "Please select an address from the suggestions to get weather information."
       render :index, status: :unprocessable_entity
+      return false
     end
+    true
   end
 end

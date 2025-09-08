@@ -67,6 +67,7 @@ group :development, :test do
   gem "webmock", "~> 3.19"  # For stubbing HTTP requests in tests
   gem "vcr", "~> 6.2"       # For recording HTTP interactions in tests
   gem "rails-controller-testing"  # For controller testing helpers
+  gem "capybara", "~> 3.39"  # For view testing with DOM matchers
 end
 
 group :development do
