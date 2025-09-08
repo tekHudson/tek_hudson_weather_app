@@ -1,0 +1,181 @@
+<% content_for :title, "Weather Results - #{@weather_data[:location][:name]}" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-8">
+    <!-- Back Button -->
+    <div class="mb-4">
+      <%= link_to root_path, class: "btn btn-outline-secondary" do %>
+        <i class="fas fa-arrow-left me-2"></i>Back to Search
+      <% end %>
+    </div>
+
+    <!-- Cache Indicator -->
+    <% if @cached %>
+      <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="fas fa-database me-2"></i>
+        <div>
+          <strong>Cached Result:</strong> This weather data was retrieved from cache.
+          <% if @cache_timestamp %>
+            <br><small>Originally fetched at: <%= @cache_timestamp.strftime("%B %d, %Y at %I:%M %p") %></small>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Weather Results Card -->
+    <div class="card shadow-lg border-0">
+      <!-- Location Header -->
+      <div class="card-header bg-gradient bg-primary text-white">
+        <div class="row align-items-center">
+          <div class="col">
+            <h2 class="card-title mb-1">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              <%= @weather_data[:location][:name] %>, <%= @weather_data[:location][:country] %>
+            </h2>
+            <p class="mb-0 opacity-75">
+              <i class="fas fa-clock me-1"></i>
+              Last updated: <%= @weather_data[:fetched_at].strftime("%B %d, %Y at %I:%M %p") %>
+            </p>
+          </div>
+          <div class="col-auto">
+            <img src="https://openweathermap.org/img/wn/<%= @weather_data[:current_weather][:icon] %>@2x.png" 
+                 alt="Weather icon" class="weather-icon">
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+        <!-- Current Weather Section -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="text-center">
+              <div class="display-1 fw-bold text-primary mb-2">
+                <%= @weather_data[:current_weather][:temperature] %>°F
+              </div>
+              <h4 class="text-muted mb-3">
+                <%= @weather_data[:current_weather][:description] %>
+              </h4>
+              <p class="text-muted mb-0">
+                Feels like <%= @weather_data[:current_weather][:feels_like] %>°F
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="card bg-light h-100">
+                  <div class="card-body text-center">
+                    <i class="fas fa-arrow-up text-danger fa-2x mb-2"></i>
+                    <h5 class="card-title text-danger"><%= @weather_data[:temperature_range][:high] %>°F</h5>
+                    <p class="card-text small text-muted">High</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-6">
+                <div class="card bg-light h-100">
+                  <div class="card-body text-center">
+                    <i class="fas fa-arrow-down text-info fa-2x mb-2"></i>
+                    <h5 class="card-title text-info"><%= @weather_data[:temperature_range][:low] %>°F</h5>
+                    <p class="card-text small text-muted">Low</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weather Details Grid -->
+        <div class="row g-3">
+          <div class="col-md-3 col-sm-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-tint text-primary fa-2x mb-2"></i>
+                <h5 class="card-title"><%= @weather_data[:current_weather][:humidity] %>%</h5>
+                <p class="card-text small text-muted">Humidity</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-weight-hanging text-secondary fa-2x mb-2"></i>
+                <h5 class="card-title"><%= @weather_data[:current_weather][:pressure] %> hPa</h5>
+                <p class="card-text small text-muted">Pressure</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-wind text-success fa-2x mb-2"></i>
+                <h5 class="card-title"><%= @weather_data[:wind][:speed] %> mph</h5>
+                <p class="card-text small text-muted">Wind Speed</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6">
+            <div class="card bg-light h-100">
+              <div class="card-body text-center">
+                <i class="fas fa-eye text-info fa-2x mb-2"></i>
+                <h5 class="card-title">
+                  <% if @weather_data[:visibility] %>
+                    <%= (@weather_data[:visibility] / 1000.0).round(1) %> km
+                  <% else %>
+                    N/A
+                  <% end %>
+                </h5>
+                <p class="card-text small text-muted">Visibility</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wind Direction -->
+        <% if @weather_data[:wind][:direction] %>
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-body text-center">
+                  <h6 class="card-title">
+                    <i class="fas fa-compass me-2"></i>Wind Direction
+                  </h6>
+                  <div class="wind-direction" style="transform: rotate(<%= @weather_data[:wind][:direction] %>deg);">
+                    <i class="fas fa-location-arrow fa-3x text-primary"></i>
+                  </div>
+                  <p class="mt-2 mb-0 text-muted">
+                    <%= @weather_data[:wind][:direction] %>° 
+                    (<%= wind_direction_text(@weather_data[:wind][:direction]) %>)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Search Again Section -->
+    <div class="card mt-4 border-0 bg-light">
+      <div class="card-body text-center">
+        <h5 class="card-title">Search Another Location</h5>
+        <p class="card-text text-muted">Get weather information for a different address or zip code</p>
+        <%= link_to root_path, class: "btn btn-primary" do %>
+          <i class="fas fa-search me-2"></i>Search Again
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom CSS for wind direction -->
+<style>
+.wind-direction {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+</style>

@@ -1,0 +1,145 @@
+<% content_for :title, "Weather App - Get Current Weather Information" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-6">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+      <h1 class="display-4 fw-bold text-primary">
+        <i class="fas fa-cloud-sun me-3"></i>Weather App
+      </h1>
+      <p class="lead text-muted">
+        Get current weather information for any address or zip code
+      </p>
+    </div>
+
+    <!-- Search Form Card -->
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">
+          <i class="fas fa-search me-2"></i>Search Weather
+        </h3>
+      </div>
+      <div class="card-body p-4">
+        <%= form_with url: weather_show_path, method: :get, local: true, class: "needs-validation", novalidate: true do |form| %>
+          <!-- Search Type Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Search by:</label>
+            <div class="btn-group w-100" role="group" aria-label="Search type">
+              <input type="radio" class="btn-check" name="search_type" id="search_address" value="address" 
+                     <%= 'checked' if @search_type == 'address' || @search_type.blank? %>>
+              <label class="btn btn-outline-primary" for="search_address">
+                <i class="fas fa-map-marker-alt me-2"></i>Address
+              </label>
+
+              <input type="radio" class="btn-check" name="search_type" id="search_zip" value="zip" 
+                     <%= 'checked' if @search_type == 'zip' %>>
+              <label class="btn btn-outline-primary" for="search_zip">
+                <i class="fas fa-mail-bulk me-2"></i>Zip Code
+              </label>
+            </div>
+          </div>
+
+          <!-- Search Input -->
+          <div class="mb-4">
+            <label for="search_query" class="form-label fw-semibold">
+              <span id="search_label">Enter Address</span>
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-location-dot"></i>
+              </span>
+              <%= form.text_field :search_query, 
+                  id: "search_query",
+                  class: "form-control form-control-lg", 
+                  placeholder: "Enter address or zip code...",
+                  value: @search_query,
+                  required: true %>
+              <button class="btn btn-primary btn-lg" type="submit">
+                <i class="fas fa-search me-2"></i>Get Weather
+              </button>
+            </div>
+            <div class="form-text">
+              <span id="search_help">
+                Enter a full address (e.g., "New York, NY" or "123 Main St, Boston, MA")
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 text-center">
+          <div class="card-body">
+            <div class="text-primary mb-3">
+              <i class="fas fa-thermometer-half fa-3x"></i>
+            </div>
+            <h5 class="card-title">Current Temperature</h5>
+            <p class="card-text text-muted">
+              Get real-time temperature data with detailed weather conditions.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 text-center">
+          <div class="card-body">
+            <div class="text-success mb-3">
+              <i class="fas fa-chart-line fa-3x"></i>
+            </div>
+            <h5 class="card-title">High & Low Temps</h5>
+            <p class="card-text text-muted">
+              View daily temperature ranges and extended forecast information.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 text-center">
+          <div class="card-body">
+            <div class="text-info mb-3">
+              <i class="fas fa-bolt fa-3x"></i>
+            </div>
+            <h5 class="card-title">Fast & Cached</h5>
+            <p class="card-text text-muted">
+              Results are cached for 30 minutes to provide faster responses.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for dynamic form behavior -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const addressRadio = document.getElementById('search_address');
+  const zipRadio = document.getElementById('search_zip');
+  const searchLabel = document.getElementById('search_label');
+  const searchHelp = document.getElementById('search_help');
+  const searchInput = document.getElementById('search_query');
+
+  function updateFormLabels() {
+    if (zipRadio.checked) {
+      searchLabel.textContent = 'Enter Zip Code';
+      searchInput.placeholder = 'Enter 5-digit zip code (e.g., 10001)';
+      searchHelp.textContent = 'Enter a 5-digit US zip code (e.g., 10001, 90210)';
+    } else {
+      searchLabel.textContent = 'Enter Address';
+      searchInput.placeholder = 'Enter address or zip code...';
+      searchHelp.textContent = 'Enter a full address (e.g., "New York, NY" or "123 Main St, Boston, MA")';
+    }
+  }
+
+  addressRadio.addEventListener('change', updateFormLabels);
+  zipRadio.addEventListener('change', updateFormLabels);
+  
+  // Initialize form labels
+  updateFormLabels();
+});
+</script>
