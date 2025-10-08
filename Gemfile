@@ -41,7 +41,7 @@ gem "thruster", require: false
 # gem "image_processing", "~> 1.2"
 
 # Weather application specific gems
-gem "httparty", "~> 0.21"  # For making HTTP requests to weather APIs
+gem "httparty", "~> 0.23"  # For making HTTP requests to weather APIs
 gem "geocoder", "~> 1.8"   # For address geocoding and reverse geocoding
 gem "redis", "~> 5.0"      # For advanced caching (optional, can use Rails cache)
 gem "dotenv-rails", "~> 2.8"  # For loading environment variables from .env file
